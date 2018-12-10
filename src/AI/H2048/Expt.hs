@@ -1,5 +1,4 @@
 module AI.H2048.Expt(alphaBetaPlayer,
-                     minmaxPlayer,
                      exptPlayer
                     ) where
 
@@ -36,21 +35,6 @@ step (PP pbs) = PP $ fmap (second step) pbs
 
 level :: Int -> Board -> ProbBoard
 level n b = iterate step (PL b)  !! n
-
-minmaxPB :: ProbBoard -> Maybe Double
-minmaxPB (PL b)   = Just $ score b
-minmaxPB (PM [])  = Nothing
-minmaxPB (PM mbs) = maximum . map (minmaxPB . snd) $ mbs
-minmaxPB (PP [])  = Nothing
-minmaxPB (PP pbs) = minimum . map (minmaxPB . snd) $ pbs
-
-minmax :: ProbBoard -> Maybe Move
-minmax (PM mbs) = listToMaybe . map fst . sortBy
-  (comparing $ minmaxPB . snd) $ mbs
-minmax _ = error "error game tree"
-
-minmaxMove :: Board -> Maybe Move
-minmaxMove b = minmax (level 2 b)
 
 alphaBeta' ::  Double -> Double -> ProbBoard -> Double
 alphaBeta' _ _ (PL b) = score b
@@ -106,9 +90,6 @@ exptMove b = exptMove' (level 3 b)
 maxbound', minbound' :: Double
 maxbound' = -100000000
 minbound' = 100000000
-
-minmaxPlayer :: Player
-minmaxPlayer = Player (PlayerName "Minmax-AI") $ return . minmaxMove
 
 alphaBetaPlayer :: Player
 alphaBetaPlayer = Player (PlayerName "AlphaBeta-AI") $ return . alphaBetaMove

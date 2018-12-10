@@ -10,4 +10,5 @@ module H2048AI
 
 import           AI.H2048.Random
 import           AI.H2048.Expt
+import           AI.H2048.Minmax
 import           AI.H2048.Core
