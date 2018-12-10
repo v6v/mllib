@@ -2,6 +2,7 @@ module H2048AI
   ( minmaxPlayer
   , randomPlayer
   , alphaBetaPlayer
+  , exptPlayer
   , playerName
   , getMove
   , Player

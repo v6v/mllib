@@ -1,16 +1,18 @@
 module AI.H2048.Expt(alphaBetaPlayer,
-                     minmaxPlayer
+                     minmaxPlayer,
+                     exptPlayer
                     ) where
 
 import           AI.H2048.Core
-import           Control.Lens
 import           Control.Applicative
-import           Control.Arrow (second)
-import           Data.Function     (on)
-import           Data.List         (maximum, maximumBy, sortBy, transpose)
-import           Data.List.Ordered (isSorted)
-import           Data.Maybe        (listToMaybe, maybeToList)
-import           Data.Ord          (comparing)
+import           Control.Arrow       (second)
+import           Control.Lens
+import           Control.Monad       (join)
+import           Data.Function       (on)
+import           Data.List           (maximum, maximumBy, sortBy, transpose)
+import           Data.List.Ordered   (isSorted)
+import           Data.Maybe          (listToMaybe, maybeToList, fromMaybe)
+import           Data.Ord            (comparing)
 
 data ProbBoard = PM [(Move,ProbBoard)] | PP [(Double,ProbBoard)] | PL Board
   deriving Show
@@ -36,10 +38,10 @@ level :: Int -> Board -> ProbBoard
 level n b = iterate step (PL b)  !! n
 
 minmaxPB :: ProbBoard -> Maybe Double
-minmaxPB (PL b) = Just $ score b
-minmaxPB (PM []) = Nothing
+minmaxPB (PL b)   = Just $ score b
+minmaxPB (PM [])  = Nothing
 minmaxPB (PM mbs) = maximum . map (minmaxPB . snd) $ mbs
-minmaxPB (PP []) = Nothing
+minmaxPB (PP [])  = Nothing
 minmaxPB (PP pbs) = minimum . map (minmaxPB . snd) $ pbs
 
 minmax :: ProbBoard -> Maybe Move
@@ -67,7 +69,7 @@ alphaBeta' alpha beta (PP pbs) = case pbs of
 
 alphaBeta :: ProbBoard -> Double
 alphaBeta (PL b) = score b
-alphaBeta pb = alphaBeta' maxbound' minbound' pb
+alphaBeta pb     = alphaBeta' maxbound' minbound' pb
 
 alphaBetaMove' :: ProbBoard -> Maybe Move
 alphaBetaMove' (PM mbs) = listToMaybe . map fst . sortBy
@@ -76,6 +78,30 @@ alphaBetaMove' _ = error "error game tree"
 
 alphaBetaMove :: Board -> Maybe Move
 alphaBetaMove b = alphaBetaMove' (level 3 b)
+
+exptScore = [4^15,4^14,4^13,4^12,4^8,4^9,4^10,4^11,4^7,4^6,4^5,4^4,4^0,4^1,4^2,4^3]
+
+heurScore :: Board -> Int
+heurScore board = maximum
+  [sum $ zipWith (*) exptScore (join $ _cells board),
+   sum $ zipWith (*) exptScore (join $ transpose $_cells board),
+   sum $ zipWith (*) exptScore (join $ map reverse $_cells board),
+   sum $ zipWith (*) exptScore (join . map reverse . transpose $_cells board)]
+
+exptProbBoard :: ProbBoard -> Maybe Double
+exptProbBoard (PL b)   = Just . fromInteger . toInteger $ heurScore b
+exptProbBoard (PM [])  = Nothing
+exptProbBoard (PM mbs) = maximum . map (exptProbBoard . snd) $ mbs
+exptProbBoard (PP [])  = Nothing
+exptProbBoard (PP pbs) = Just $ sum . map (\(p,b)-> p * fromMaybe 0 (exptProbBoard b)) $ pbs
+
+exptMove' :: ProbBoard -> Maybe Move
+exptMove' (PM mbs) = listToMaybe . map fst . sortBy
+  (comparing $ exptProbBoard . snd) $ mbs
+exptMove' _ = error "error game tree"
+
+exptMove :: Board -> Maybe Move
+exptMove b = exptMove' (level 3 b)
 
 maxbound', minbound' :: Double
 maxbound' = -100000000
@@ -86,6 +112,9 @@ minmaxPlayer = Player (PlayerName "Minmax-AI") $ return . minmaxMove
 
 alphaBetaPlayer :: Player
 alphaBetaPlayer = Player (PlayerName "AlphaBeta-AI") $ return . alphaBetaMove
+
+exptPlayer :: Player
+exptPlayer = Player (PlayerName "Expt-AI") $ return . exptMove
 
 score :: Board -> Double
 score b = fromIntegral $ 100000 + orderScore + closePairsScore  + maxAtEndScore + emptyScore - divergeScore -- - total * 10 + emptyScore
