@@ -1,0 +1,53 @@
+name: mllib
+version: '0.1.0.0'
+synopsis: A Naive Lib for common ml/ai computation
+description: Please see the README on Github at <https://github.com/Enzo-Liu/mllib#readme>
+category: base
+author: Enzo Liu
+maintainer: liuenze6516@gmail.com
+copyright: ! 'Copyright: (c) 2017 Enzo Liu'
+license: BSD3
+github: Enzo-Liu/mllib
+extra-source-files:
+- README.org
+library:
+  source-dirs: src
+  exposed-modules:
+  - Lib
+  - DecisionTree
+  - H2048
+  - H2048AI
+  dependencies:
+  - base >=4.7 && <5
+  - containers
+  - lens
+  - random
+  - semigroups
+  - monad-loops
+  - data-ordlist
+executables:
+  mllib-exe:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base
+    - mllib
+    - brick
+    - vty
+tests:
+  mllib-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - base
+    - mllib
+    - QuickCheck
+    - hspec
