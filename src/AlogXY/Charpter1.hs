@@ -2,12 +2,15 @@ module AlogXY.Charpter1 where
 
 import           Control.Monad (replicateM)
 import           Data.Function (on)
-import           Data.List     (elemIndex, partition)
-import           Data.List     (sortBy)
+import           Data.List     (elemIndex, partition, sortBy)
 import           Data.Maybe    (fromJust, fromMaybe)
 import           System.Random (randomRIO)
 
 data Tree a = Empty | Node (Tree a) a (Tree a) deriving (Show, Eq)
+
+instance Foldable Tree where
+   foldMap _ Empty        = mempty
+   foldMap f (Node l k r) = foldMap f l `mappend` f k `mappend` foldMap f r
 
 -- | Exercise 1.1: given pre-order list and in-order list, get back Tree
 --
@@ -86,3 +89,7 @@ fromList :: Ord a => [a] -> Tree a
 fromList [] = Empty
 fromList (a:as) = Node (fromList left) a (fromList right)
   where (left, right) = partition (<a) as
+
+addToBST :: Ord a => Tree a -> a -> Tree a
+addToBST Empty a = Node Empty a Empty
+addToBST (Node l v r ) a = undefined
