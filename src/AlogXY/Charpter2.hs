@@ -11,6 +11,5 @@ insertForSort (x:xs) a
 insertSort :: Ord a => [a] -> [a]
 insertSort = foldl insertForSort []
 
-
 insertTreeSort :: Ord a => [a] -> [a]
 insertTreeSort = inOrder . foldl addToBST Empty . fromList

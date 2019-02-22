@@ -92,4 +92,6 @@ fromList (a:as) = Node (fromList left) a (fromList right)
 
 addToBST :: Ord a => Tree a -> a -> Tree a
 addToBST Empty a = Node Empty a Empty
-addToBST (Node l v r ) a = undefined
+addToBST (Node l v r ) a
+  | v > a = Node (addToBST l a) v r
+  | otherwise = Node l v (addToBST r a)
